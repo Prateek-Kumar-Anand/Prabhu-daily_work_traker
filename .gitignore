@@ -1,0 +1,22 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Android Studio generated
+*.apk
+*.ap_
+*.aab
+/app/release/
+/app/build/
+/app/debug/
+
+# Keystore (never commit real signing keys)
+*.jks
+*.keystore
