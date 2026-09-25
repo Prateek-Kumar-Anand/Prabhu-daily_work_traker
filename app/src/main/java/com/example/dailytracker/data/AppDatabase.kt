@@ -5,21 +5,21 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.dailytracker.data.dao.ActivityDao
+import com.example.dailytracker.data.dao.ClassDao
 import com.example.dailytracker.data.dao.ExpenseDao
-import com.example.dailytracker.data.dao.SaleDao
 import com.example.dailytracker.data.model.ActivityEntity
+import com.example.dailytracker.data.model.ClassEntity
 import com.example.dailytracker.data.model.ExpenseEntity
-import com.example.dailytracker.data.model.SaleEntity
 
 @Database(
-    entities = [ExpenseEntity::class, SaleEntity::class, ActivityEntity::class],
-    version = 1,
+    entities = [ExpenseEntity::class, ClassEntity::class, ActivityEntity::class],
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun expenseDao(): ExpenseDao
-    abstract fun saleDao(): SaleDao
+    abstract fun classDao(): ClassDao
     abstract fun activityDao(): ActivityDao
 
     companion object {
@@ -32,7 +32,8 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "daily_tracker.db"
-                ).build()
+                ).fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

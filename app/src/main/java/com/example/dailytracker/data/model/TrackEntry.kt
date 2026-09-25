@@ -1,7 +1,7 @@
 package com.example.dailytracker.data.model
 
 /**
- * A single, screen-agnostic representation of a spending, sale, or activity
+ * A single, screen-agnostic representation of a spending, class, or activity
  * record, used to render mixed lists (dashboard "recent" cards, History screen).
  */
 data class TrackEntry(
@@ -9,7 +9,7 @@ data class TrackEntry(
     val type: EntryType,
     val title: String,
     val subtitle: String,
-    val amount: Double?,   // null for activities
+    val amount: Double?,   // null for classes and activities
     val dateMillis: Long
 )
 
@@ -22,12 +22,12 @@ fun ExpenseEntity.toTrackEntry() = TrackEntry(
     dateMillis = dateMillis
 )
 
-fun SaleEntity.toTrackEntry() = TrackEntry(
+fun ClassEntity.toTrackEntry() = TrackEntry(
     id = id,
-    type = EntryType.SALE,
-    title = itemName,
-    subtitle = if (customer.isBlank()) "Qty $quantity" else "$customer · Qty $quantity",
-    amount = amount,
+    type = EntryType.CLASS,
+    title = subject,
+    subtitle = if (teacher.isBlank()) type else "$type · $teacher",
+    amount = null,
     dateMillis = dateMillis
 )
 

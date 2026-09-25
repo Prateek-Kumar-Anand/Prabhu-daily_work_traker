@@ -22,8 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.dailytracker.data.model.EntryType
 import com.example.dailytracker.ui.theme.ActivityPurple
+import com.example.dailytracker.ui.theme.ClassTeal
 import com.example.dailytracker.ui.theme.PrimaryBlue
-import com.example.dailytracker.ui.theme.SaleGreen
 import com.example.dailytracker.ui.theme.SpendingRed
 import com.example.dailytracker.util.DateUtils
 
@@ -89,7 +89,7 @@ fun WeekCalendarStrip(
                         horizontalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         if (dayTypes.contains(EntryType.SPENDING)) DayDot(SpendingRed)
-                        if (dayTypes.contains(EntryType.SALE)) DayDot(SaleGreen)
+                        if (dayTypes.contains(EntryType.CLASS)) DayDot(ClassTeal)
                         if (dayTypes.contains(EntryType.ACTIVITY)) DayDot(ActivityPurple)
                     }
                 }

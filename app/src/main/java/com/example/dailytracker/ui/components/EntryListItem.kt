@@ -12,7 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Sell
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material3.Card
@@ -31,8 +31,8 @@ import com.example.dailytracker.data.model.EntryType
 import com.example.dailytracker.data.model.TrackEntry
 import com.example.dailytracker.ui.theme.ActivityPurple
 import com.example.dailytracker.ui.theme.ActivityPurpleLight
-import com.example.dailytracker.ui.theme.SaleGreen
-import com.example.dailytracker.ui.theme.SaleGreenLight
+import com.example.dailytracker.ui.theme.ClassTeal
+import com.example.dailytracker.ui.theme.ClassTealLight
 import com.example.dailytracker.ui.theme.SpendingRed
 import com.example.dailytracker.ui.theme.SpendingRedLight
 import com.example.dailytracker.util.DateUtils
@@ -73,7 +73,7 @@ fun SectionCard(
 fun EntryListItem(entry: TrackEntry, modifier: Modifier = Modifier) {
     val (icon: ImageVector, tint, container) = when (entry.type) {
         EntryType.SPENDING -> Triple(Icons.Filled.ShoppingCart, SpendingRed, SpendingRedLight)
-        EntryType.SALE -> Triple(Icons.Filled.Sell, SaleGreen, SaleGreenLight)
+        EntryType.CLASS -> Triple(Icons.Filled.School, ClassTeal, ClassTealLight)
         EntryType.ACTIVITY -> Triple(Icons.Filled.TaskAlt, ActivityPurple, ActivityPurpleLight)
     }
 

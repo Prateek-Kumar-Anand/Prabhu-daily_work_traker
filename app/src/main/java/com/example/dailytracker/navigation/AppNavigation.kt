@@ -16,8 +16,8 @@ import com.example.dailytracker.ui.components.BottomDestination
 import com.example.dailytracker.ui.components.BottomNavBar
 import com.example.dailytracker.ui.components.QuickAddSheet
 import com.example.dailytracker.ui.screens.AddActivityScreen
+import com.example.dailytracker.ui.screens.AddClassScreen
 import com.example.dailytracker.ui.screens.AddExpenseScreen
-import com.example.dailytracker.ui.screens.AddSaleScreen
 import com.example.dailytracker.ui.screens.DashboardScreen
 import com.example.dailytracker.ui.screens.HistoryScreen
 import com.example.dailytracker.viewmodel.ViewModelFactory
@@ -26,7 +26,7 @@ private object Routes {
     const val DASHBOARD = "dashboard"
     const val HISTORY = "history"
     const val ADD_EXPENSE = "add_expense"
-    const val ADD_SALE = "add_sale"
+    const val ADD_CLASS = "add_class"
     const val ADD_ACTIVITY = "add_activity"
 }
 
@@ -72,7 +72,7 @@ fun AppNavigation(factory: ViewModelFactory) {
                         navController.navigate(Routes.HISTORY)
                     },
                     onAddSpending = { navController.navigate(Routes.ADD_EXPENSE) },
-                    onAddSale = { navController.navigate(Routes.ADD_SALE) },
+                    onAddClass = { navController.navigate(Routes.ADD_CLASS) },
                     onAddActivity = { navController.navigate(Routes.ADD_ACTIVITY) }
                 )
             }
@@ -82,8 +82,8 @@ fun AppNavigation(factory: ViewModelFactory) {
             composable(Routes.ADD_EXPENSE) {
                 AddExpenseScreen(factory = factory, onBack = { navController.popBackStack() })
             }
-            composable(Routes.ADD_SALE) {
-                AddSaleScreen(factory = factory, onBack = { navController.popBackStack() })
+            composable(Routes.ADD_CLASS) {
+                AddClassScreen(factory = factory, onBack = { navController.popBackStack() })
             }
             composable(Routes.ADD_ACTIVITY) {
                 AddActivityScreen(factory = factory, onBack = { navController.popBackStack() })
@@ -98,9 +98,9 @@ fun AppNavigation(factory: ViewModelFactory) {
                 showQuickAdd = false
                 navController.navigate(Routes.ADD_EXPENSE)
             },
-            onAddSale = {
+            onAddClass = {
                 showQuickAdd = false
-                navController.navigate(Routes.ADD_SALE)
+                navController.navigate(Routes.ADD_CLASS)
             },
             onAddActivity = {
                 showQuickAdd = false

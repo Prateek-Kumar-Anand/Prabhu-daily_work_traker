@@ -3,14 +3,14 @@ package com.example.dailytracker.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dailytracker.data.model.ActivityEntity
+import com.example.dailytracker.data.model.ClassEntity
 import com.example.dailytracker.data.model.EntryType
 import com.example.dailytracker.data.model.ExpenseEntity
-import com.example.dailytracker.data.model.SaleEntity
 import com.example.dailytracker.data.model.TrackEntry
 import com.example.dailytracker.data.model.toTrackEntry
 import com.example.dailytracker.data.repository.ActivityRepository
+import com.example.dailytracker.data.repository.ClassRepository
 import com.example.dailytracker.data.repository.ExpenseRepository
-import com.example.dailytracker.data.repository.SaleRepository
 import com.example.dailytracker.util.DateUtils
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -18,32 +18,31 @@ import kotlinx.coroutines.flow.stateIn
 
 data class DashboardUiState(
     val todaySpending: Double = 0.0,
-    val todaySales: Double = 0.0,
+    val todayClassCount: Int = 0,
     val todayActivityCount: Int = 0,
     val monthSpending: Double = 0.0,
-    val monthSales: Double = 0.0,
     val weekDayIndicators: Map<Long, Set<EntryType>> = emptyMap(),
-    val recentTransactions: List<TrackEntry> = emptyList(),
+    val recentSpending: List<TrackEntry> = emptyList(),
+    val todayClasses: List<TrackEntry> = emptyList(),
     val recentActivities: List<TrackEntry> = emptyList()
 )
 
 private data class Totals(
     val todaySpending: Double,
-    val todaySales: Double,
+    val todayClasses: Int,
     val todayActivities: Int,
-    val monthSpending: Double,
-    val monthSales: Double
+    val monthSpending: Double
 )
 
 private data class Lists(
     val expenses: List<ExpenseEntity>,
-    val sales: List<SaleEntity>,
+    val classes: List<ClassEntity>,
     val activities: List<ActivityEntity>
 )
 
 class DashboardViewModel(
     private val expenseRepository: ExpenseRepository,
-    private val saleRepository: SaleRepository,
+    private val classRepository: ClassRepository,
     private val activityRepository: ActivityRepository
 ) : ViewModel() {
 
@@ -57,20 +56,19 @@ class DashboardViewModel(
 
     private val totalsFlow = combine(
         expenseRepository.totalBetween(todayStart, todayEnd),
-        saleRepository.totalBetween(todayStart, todayEnd),
+        classRepository.countBetween(todayStart, todayEnd),
         activityRepository.countBetween(todayStart, todayEnd),
-        expenseRepository.totalBetween(monthStart, monthEnd),
-        saleRepository.totalBetween(monthStart, monthEnd)
-    ) { todaySpending, todaySales, todayActivities, monthSpending, monthSales ->
-        Totals(todaySpending, todaySales, todayActivities, monthSpending, monthSales)
+        expenseRepository.totalBetween(monthStart, monthEnd)
+    ) { todaySpending, todayClasses, todayActivities, monthSpending ->
+        Totals(todaySpending, todayClasses, todayActivities, monthSpending)
     }
 
     private val listsFlow = combine(
         expenseRepository.allExpenses,
-        saleRepository.allSales,
+        classRepository.allClasses,
         activityRepository.allActivities
-    ) { expenses, sales, activities ->
-        Lists(expenses, sales, activities)
+    ) { expenses, classes, activities ->
+        Lists(expenses, classes, activities)
     }
 
     val uiState = combine(totalsFlow, listsFlow) { totals, lists ->
@@ -80,24 +78,28 @@ class DashboardViewModel(
             indicators.getOrPut(dayStart) { mutableSetOf() }.add(type)
         }
         lists.expenses.forEach { mark(it.dateMillis, EntryType.SPENDING) }
-        lists.sales.forEach { mark(it.dateMillis, EntryType.SALE) }
+        lists.classes.forEach { mark(it.dateMillis, EntryType.CLASS) }
         lists.activities.forEach { mark(it.dateMillis, EntryType.ACTIVITY) }
 
-        val transactions = (lists.expenses.map { it.toTrackEntry() } + lists.sales.map { it.toTrackEntry() })
+        val recentSpending = lists.expenses.map { it.toTrackEntry() }
             .sortedByDescending { it.dateMillis }
             .take(5)
+        val todayClasses = lists.classes
+            .filter { DateUtils.isSameDay(it.dateMillis, now) }
+            .map { it.toTrackEntry() }
+            .sortedByDescending { it.dateMillis }
         val recentActivities = lists.activities.map { it.toTrackEntry() }
             .sortedByDescending { it.dateMillis }
             .take(5)
 
         DashboardUiState(
             todaySpending = totals.todaySpending,
-            todaySales = totals.todaySales,
+            todayClassCount = totals.todayClasses,
             todayActivityCount = totals.todayActivities,
             monthSpending = totals.monthSpending,
-            monthSales = totals.monthSales,
             weekDayIndicators = indicators,
-            recentTransactions = transactions,
+            recentSpending = recentSpending,
+            todayClasses = todayClasses,
             recentActivities = recentActivities
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())

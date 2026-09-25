@@ -1,36 +1,41 @@
-# Prabhu
+# StudyTrack
 
-A native Android app (Kotlin + Jetpack Compose) for recording your **spending**,
-**sales**, and **daily activities** — built entirely offline, with **no AI or
-network integration** of any kind. All data is stored locally on-device using
-a Room (SQLite) database.
+A native Android app (Kotlin + Jetpack Compose) for students to record their
+**spending**, **classes**, and **daily activities** — built entirely offline,
+with **no AI or network integration** of any kind. All data is stored locally
+on-device using a Room (SQLite) database.
 
 The UI layout is adapted from an HR dashboard design: the "Planned Absences"
 weekly grid became a colored-dot activity calendar, the "Future Events" /
-"Onboarding" two-column cards became "Recent Transactions" / "Today's
-Activities", and the AI-assistant panel was replaced with a plain **Quick Add**
-panel (buttons only — no chat, no AI).
+"Onboarding" two-column cards became "Recent Spending" / "Today's Classes",
+and the AI-assistant panel was replaced with a plain **Quick Add** panel
+(buttons only — no chat, no AI).
 
 ## Features
 
-- **Record Spending** — amount, category (Food, Transport, Shopping, Bills,
-  Health, Other), note, date
-- **Record Sales** — item/service, amount, quantity, customer, note, date
-- **Log Activities** — title, category, details, completed toggle, date
-- **Dashboard** — weekly calendar strip, today's totals, net balance,
-  recent transactions and activities
+- **Record Spending** — amount, category (Food, Transport, Books & Supplies,
+  Fees, Entertainment, Other), note, date
+- **Add a Class** — subject, type (Lecture, Lab, Tutorial, Seminar, Exam,
+  Other), teacher, room, note, attended toggle, date
+- **Log Activities** — title, category (Study, Assignment, Exam Prep,
+  Personal, Errand, Other), details, completed toggle, date
+- **Dashboard** — weekly calendar strip, today's totals, today's classes,
+  recent spending and activities
 - **History** — full combined list, filterable by type, with running totals
 - 100% local storage (Room/SQLite) — nothing ever leaves the device
 
 ## Get an APK without installing anything (GitHub Actions)
 
 This repo includes a GitHub Actions workflow (`.github/workflows/build-apk.yml`)
-that builds the APK for you in the cloud — you never need Android Studio.
+that builds the APK for you in the cloud — you never need Android Studio. The
+workflow installs Gradle itself and generates a fresh wrapper as its first
+step, so the missing `gradle-wrapper.jar` mentioned below has no effect on
+this path.
 
 1. Create a new **public or private GitHub repository** and push this project
    to it:
    ```bash
-   cd DailyTrackerApp
+   cd StudyTrack
    git init
    git add .
    git commit -m "Initial commit"
@@ -70,7 +75,7 @@ or bookmark, under the **Releases** section of your repo.
 
 1. Install [Android Studio](https://developer.android.com/studio) (Giraffe or
    newer).
-2. **File → Open** and select the `DailyTrackerApp` folder.
+2. **File → Open** and select the `StudyTrack` folder.
 3. This repo does not include the compiled Gradle wrapper jar (it's a binary
    file that can't be generated offline). On first open, Android Studio will
    detect this and offer to fix/regenerate the wrapper automatically — accept
@@ -80,6 +85,13 @@ or bookmark, under the **Releases** section of your repo.
    automatically if needed), then click **Run ▶** with a device or emulator
    connected.
 
+## If you already had the old version installed
+
+The database was reshaped (the old "sales" table became "classes"), so the
+app now runs a destructive migration on first launch after this update —
+your existing Spending/Activity entries are kept, but any old records will
+be cleared once when the schema changes. This only happens the one time.
+
 ## Project structure
 
 ```
@@ -88,7 +100,7 @@ app/src/main/java/com/example/dailytracker/
 ├── viewmodel/        ViewModels for Dashboard, Add screens, and History
 ├── ui/theme/         Colors, typography, Material3 theme
 ├── ui/components/    Reusable composables (cards, calendar strip, nav bar)
-├── ui/screens/        Dashboard, Add Spending/Sale/Activity, History screens
+├── ui/screens/        Dashboard, Add Spending/Class/Activity, History screens
 ├── navigation/       Bottom-nav + NavHost wiring
 ├── util/             Date and currency formatting helpers
 ├── MainActivity.kt

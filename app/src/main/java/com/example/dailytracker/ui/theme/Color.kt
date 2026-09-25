@@ -18,8 +18,8 @@ val PrimaryBlueLight = Color(0xFFE5ECFD)
 val SpendingRed = Color(0xFFEF5A6F)
 val SpendingRedLight = Color(0xFFFCE7EA)
 
-val SaleGreen = Color(0xFF22C55E)
-val SaleGreenLight = Color(0xFFE1F8E9)
+val ClassTeal = Color(0xFF14B8A6)
+val ClassTealLight = Color(0xFFDCF6F2)
 
 val ActivityPurple = Color(0xFF8B5CF6)
 val ActivityPurpleLight = Color(0xFFEEE7FD)

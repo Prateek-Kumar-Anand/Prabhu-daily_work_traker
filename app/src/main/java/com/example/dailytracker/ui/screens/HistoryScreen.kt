@@ -26,7 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dailytracker.data.model.EntryType
 import com.example.dailytracker.ui.components.AppTopBar
 import com.example.dailytracker.ui.components.EntryListItem
-import com.example.dailytracker.ui.theme.SaleGreen
+import com.example.dailytracker.ui.theme.ClassTeal
 import com.example.dailytracker.ui.theme.SpendingRed
 import com.example.dailytracker.util.formatMoney
 import com.example.dailytracker.viewmodel.HistoryViewModel
@@ -37,7 +37,7 @@ private data class FilterOption(val label: String, val type: EntryType?)
 private val filterOptions = listOf(
     FilterOption("All", null),
     FilterOption("Spending", EntryType.SPENDING),
-    FilterOption("Sales", EntryType.SALE),
+    FilterOption("Classes", EntryType.CLASS),
     FilterOption("Activities", EntryType.ACTIVITY)
 )
 
@@ -88,12 +88,12 @@ fun HistoryScreen(factory: ViewModelFactory) {
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
-                    Text("Total Sales", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Classes Logged", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
-                        formatMoney(state.totalSales),
+                        state.totalClasses.toString(),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = SaleGreen
+                        color = ClassTeal
                     )
                 }
             }
@@ -101,7 +101,7 @@ fun HistoryScreen(factory: ViewModelFactory) {
 
         if (state.entries.isEmpty()) {
             Text(
-                text = "No records yet. Use the Add tab to log spending, sales, or activities.",
+                text = "No records yet. Use the Add tab to log spending, classes, or activities.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(20.dp)

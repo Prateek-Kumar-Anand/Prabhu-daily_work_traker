@@ -87,4 +87,21 @@ object DateUtils {
         SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date(millis))
 
     fun now(): Long = System.currentTimeMillis()
+
+    /** Today's date combined with the given hour/minute, as millis. */
+    fun atTimeToday(hour: Int, minute: Int): Long {
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.HOUR_OF_DAY, hour)
+        cal.set(Calendar.MINUTE, minute)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return cal.timeInMillis
+    }
+
+    fun hourOf(millis: Long): Int = Calendar.getInstance().apply { timeInMillis = millis }.get(Calendar.HOUR_OF_DAY)
+
+    fun minuteOf(millis: Long): Int = Calendar.getInstance().apply { timeInMillis = millis }.get(Calendar.MINUTE)
+
+    fun formatTime(millis: Long): String =
+        SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date(millis))
 }

@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Sell
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -30,10 +30,10 @@ import com.example.dailytracker.ui.components.SummaryCard
 import com.example.dailytracker.ui.components.WeekCalendarStrip
 import com.example.dailytracker.ui.theme.ActivityPurple
 import com.example.dailytracker.ui.theme.ActivityPurpleLight
+import com.example.dailytracker.ui.theme.ClassTeal
+import com.example.dailytracker.ui.theme.ClassTealLight
 import com.example.dailytracker.ui.theme.PrimaryBlue
 import com.example.dailytracker.ui.theme.PrimaryBlueLight
-import com.example.dailytracker.ui.theme.SaleGreen
-import com.example.dailytracker.ui.theme.SaleGreenLight
 import com.example.dailytracker.ui.theme.SpendingRed
 import com.example.dailytracker.ui.theme.SpendingRedLight
 import com.example.dailytracker.util.formatMoney
@@ -46,12 +46,11 @@ fun DashboardScreen(
     onViewAllTransactions: () -> Unit,
     onViewAllActivities: () -> Unit,
     onAddSpending: () -> Unit,
-    onAddSale: () -> Unit,
+    onAddClass: () -> Unit,
     onAddActivity: () -> Unit
 ) {
     val viewModel: DashboardViewModel = viewModel(factory = factory)
     val state by viewModel.uiState.collectAsState()
-    val net = state.todaySales - state.todaySpending
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -86,11 +85,11 @@ fun DashboardScreen(
                         modifier = Modifier.weight(1f)
                     )
                     SummaryCard(
-                        label = "Today's Sales",
-                        value = formatMoney(state.todaySales),
-                        icon = Icons.Filled.Sell,
-                        accentColor = SaleGreen,
-                        accentContainer = SaleGreenLight,
+                        label = "Today's Classes",
+                        value = state.todayClassCount.toString(),
+                        icon = Icons.Filled.School,
+                        accentColor = ClassTeal,
+                        accentContainer = ClassTealLight,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -101,19 +100,19 @@ fun DashboardScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     SummaryCard(
-                        label = "Net Today",
-                        value = formatMoney(net),
-                        icon = Icons.Filled.Star,
-                        accentColor = PrimaryBlue,
-                        accentContainer = PrimaryBlueLight,
-                        modifier = Modifier.weight(1f)
-                    )
-                    SummaryCard(
                         label = "Activities Today",
                         value = state.todayActivityCount.toString(),
                         icon = Icons.Filled.TaskAlt,
                         accentColor = ActivityPurple,
                         accentContainer = ActivityPurpleLight,
+                        modifier = Modifier.weight(1f)
+                    )
+                    SummaryCard(
+                        label = "This Month's Spending",
+                        value = formatMoney(state.monthSpending),
+                        icon = Icons.Filled.CalendarMonth,
+                        accentColor = PrimaryBlue,
+                        accentContainer = PrimaryBlueLight,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -122,16 +121,16 @@ fun DashboardScreen(
 
         item {
             Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                SectionCard(title = "Recent Transactions", onViewAll = onViewAllTransactions) {
-                    if (state.recentTransactions.isEmpty()) {
+                SectionCard(title = "Recent Spending", onViewAll = onViewAllTransactions) {
+                    if (state.recentSpending.isEmpty()) {
                         Text(
-                            text = "No spending or sales recorded yet.",
+                            text = "No spending recorded yet.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 8.dp)
                         )
                     } else {
-                        state.recentTransactions.forEach { entry ->
+                        state.recentSpending.forEach { entry ->
                             EntryListItem(entry)
                         }
                     }
@@ -141,6 +140,25 @@ fun DashboardScreen(
 
         item {
             Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+                SectionCard(title = "Today's Classes") {
+                    if (state.todayClasses.isEmpty()) {
+                        Text(
+                            text = "No classes logged for today.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    } else {
+                        state.todayClasses.forEach { entry ->
+                            EntryListItem(entry)
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                 SectionCard(title = "Today's Activities", onViewAll = onViewAllActivities) {
                     if (state.recentActivities.isEmpty()) {
                         Text(
@@ -159,7 +177,7 @@ fun DashboardScreen(
         }
 
         item {
-            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
                 SectionCard(title = "Quick Add") {
                     Column(modifier = Modifier.padding(top = 8.dp)) {
                         Button(
@@ -167,11 +185,11 @@ fun DashboardScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) { Text("Record Spending") }
                         OutlinedButton(
-                            onClick = onAddSale,
+                            onClick = onAddClass,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 8.dp)
-                        ) { Text("Record a Sale") }
+                        ) { Text("Add a Class") }
                         OutlinedButton(
                             onClick = onAddActivity,
                             modifier = Modifier

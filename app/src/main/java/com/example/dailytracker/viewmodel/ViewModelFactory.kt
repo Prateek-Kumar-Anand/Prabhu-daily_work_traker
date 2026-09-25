@@ -15,19 +15,19 @@ class ViewModelFactory(private val app: DailyTrackerApplication) : ViewModelProv
     override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         return when {
             modelClass.isAssignableFrom(DashboardViewModel::class.java) ->
-                DashboardViewModel(app.expenseRepository, app.saleRepository, app.activityRepository) as T
+                DashboardViewModel(app.expenseRepository, app.classRepository, app.activityRepository) as T
 
             modelClass.isAssignableFrom(ExpenseViewModel::class.java) ->
                 ExpenseViewModel(app.expenseRepository) as T
 
-            modelClass.isAssignableFrom(SaleViewModel::class.java) ->
-                SaleViewModel(app.saleRepository) as T
+            modelClass.isAssignableFrom(ClassViewModel::class.java) ->
+                ClassViewModel(app.classRepository, app.applicationContext) as T
 
             modelClass.isAssignableFrom(ActivityViewModel::class.java) ->
                 ActivityViewModel(app.activityRepository) as T
 
             modelClass.isAssignableFrom(HistoryViewModel::class.java) ->
-                HistoryViewModel(app.expenseRepository, app.saleRepository, app.activityRepository) as T
+                HistoryViewModel(app.expenseRepository, app.classRepository, app.activityRepository) as T
 
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }

@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Sell
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material3.Icon
@@ -20,15 +20,15 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.ExperimentalMaterial3Api
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.dailytracker.ui.theme.ActivityPurple
 import com.example.dailytracker.ui.theme.ActivityPurpleLight
-import com.example.dailytracker.ui.theme.SaleGreen
-import com.example.dailytracker.ui.theme.SaleGreenLight
+import com.example.dailytracker.ui.theme.ClassTeal
+import com.example.dailytracker.ui.theme.ClassTealLight
 import com.example.dailytracker.ui.theme.SpendingRed
 import com.example.dailytracker.ui.theme.SpendingRedLight
 
@@ -37,7 +37,7 @@ import com.example.dailytracker.ui.theme.SpendingRedLight
 fun QuickAddSheet(
     onDismiss: () -> Unit,
     onAddSpending: () -> Unit,
-    onAddSale: () -> Unit,
+    onAddClass: () -> Unit,
     onAddActivity: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
@@ -56,11 +56,11 @@ fun QuickAddSheet(
                 onClick = onAddSpending
             )
             QuickAddOption(
-                icon = Icons.Filled.Sell,
-                label = "Record a Sale",
-                tint = SaleGreen,
-                container = SaleGreenLight,
-                onClick = onAddSale
+                icon = Icons.Filled.School,
+                label = "Add a Class",
+                tint = ClassTeal,
+                container = ClassTealLight,
+                onClick = onAddClass
             )
             QuickAddOption(
                 icon = Icons.Filled.TaskAlt,

@@ -20,30 +20,30 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      # v3 of setup-android requested the removed legacy "tools" SDK
-      # package. v4 no longer does that.
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v4
-        with:
-          packages: 'platform-tools'
-
-      - name: Install Android SDK components
-        run: |
-          sdkmanager --install             "platforms;android-34"             "build-tools;34.0.0"
-          yes | sdkmanager --licenses >/dev/null || true
+        uses: android-actions/setup-android@v3
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.6'
+          gradle-version: "8.6"
+
+      # This repo intentionally doesn't commit the binary gradle-wrapper.jar
+      # (see README). Generate a real wrapper here, from the Gradle version
+      # just installed above, so the rest of the job builds the same way a
+      # normal checkout with a committed wrapper would: via ./gradlew.
+      - name: Generate Gradle wrapper
+        run: gradle wrapper
 
       - name: Build debug APK
-        run: gradle assembleDebug --stacktrace
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
