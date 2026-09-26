@@ -25,25 +25,28 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # packages: '' skips this action's own package install/license flow,
+      # which is what was failing ("6 of 7 SDK package licenses not
+      # accepted") - we accept licenses and install packages ourselves
+      # below instead, where it's fully non-interactive.
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: ''
+
+      - name: Accept SDK licenses and install build packages
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager --install "platforms;android-34" "build-tools;34.0.0" > /dev/null
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.6"
+        uses: gradle/actions/setup-gradle@v3
 
-      # This repo intentionally doesn't commit the binary gradle-wrapper.jar
-      # (see README). Generate a real wrapper here, from the Gradle version
-      # just installed above, so the rest of the job builds the same way a
-      # normal checkout with a committed wrapper would: via ./gradlew.
-      - name: Generate Gradle wrapper
-        run: gradle wrapper
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
 
       - name: Build debug APK
-        run: |
-          chmod +x ./gradlew
-          ./gradlew assembleDebug --stacktrace
+        run: ./gradlew assembleDebug --stacktrace
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4

@@ -27,10 +27,7 @@ and the AI-assistant panel was replaced with a plain **Quick Add** panel
 ## Get an APK without installing anything (GitHub Actions)
 
 This repo includes a GitHub Actions workflow (`.github/workflows/build-apk.yml`)
-that builds the APK for you in the cloud — you never need Android Studio. The
-workflow installs Gradle itself and generates a fresh wrapper as its first
-step, so the missing `gradle-wrapper.jar` mentioned below has no effect on
-this path.
+that builds the APK for you in the cloud — you never need Android Studio.
 
 1. Create a new **public or private GitHub repository** and push this project
    to it:
@@ -76,12 +73,7 @@ or bookmark, under the **Releases** section of your repo.
 1. Install [Android Studio](https://developer.android.com/studio) (Giraffe or
    newer).
 2. **File → Open** and select the `StudyTrack` folder.
-3. This repo does not include the compiled Gradle wrapper jar (it's a binary
-   file that can't be generated offline). On first open, Android Studio will
-   detect this and offer to fix/regenerate the wrapper automatically — accept
-   that prompt. If you have Gradle installed separately, you can instead run
-   `gradle wrapper --gradle-version 8.6` once from the project root.
-4. Let Gradle sync (it will download the Android SDK platform 34 components
+3. Let Gradle sync (it will download the Android SDK platform 34 components
    automatically if needed), then click **Run ▶** with a device or emulator
    connected.
 
