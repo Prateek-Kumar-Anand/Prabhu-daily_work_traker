@@ -23,7 +23,7 @@ data class DashboardUiState(
     val monthSpending: Double = 0.0,
     val weekDayIndicators: Map<Long, Set<EntryType>> = emptyMap(),
     val recentSpending: List<TrackEntry> = emptyList(),
-    val todayClasses: List<TrackEntry> = emptyList(),
+    val weekClasses: List<TrackEntry> = emptyList(),
     val recentActivities: List<TrackEntry> = emptyList()
 )
 
@@ -84,10 +84,10 @@ class DashboardViewModel(
         val recentSpending = lists.expenses.map { it.toTrackEntry() }
             .sortedByDescending { it.dateMillis }
             .take(5)
-        val todayClasses = lists.classes
-            .filter { DateUtils.isSameDay(it.dateMillis, now) }
+        val weekClasses = lists.classes
+            .filter { c -> weekDays.any { DateUtils.isSameDay(it, c.dateMillis) } }
             .map { it.toTrackEntry() }
-            .sortedByDescending { it.dateMillis }
+            .sortedBy { it.dateMillis }
         val recentActivities = lists.activities.map { it.toTrackEntry() }
             .sortedByDescending { it.dateMillis }
             .take(5)
@@ -99,7 +99,7 @@ class DashboardViewModel(
             monthSpending = totals.monthSpending,
             weekDayIndicators = indicators,
             recentSpending = recentSpending,
-            todayClasses = todayClasses,
+            weekClasses = weekClasses,
             recentActivities = recentActivities
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())

@@ -20,10 +20,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dailytracker.ui.components.AppTopBar
+import com.example.dailytracker.ui.components.ClassScheduleBlock
 import com.example.dailytracker.ui.components.EntryListItem
 import com.example.dailytracker.ui.components.SectionCard
 import com.example.dailytracker.ui.components.SummaryCard
@@ -36,6 +40,7 @@ import com.example.dailytracker.ui.theme.PrimaryBlue
 import com.example.dailytracker.ui.theme.PrimaryBlueLight
 import com.example.dailytracker.ui.theme.SpendingRed
 import com.example.dailytracker.ui.theme.SpendingRedLight
+import com.example.dailytracker.util.DateUtils
 import com.example.dailytracker.util.formatMoney
 import com.example.dailytracker.viewmodel.DashboardViewModel
 import com.example.dailytracker.viewmodel.ViewModelFactory
@@ -51,6 +56,11 @@ fun DashboardScreen(
 ) {
     val viewModel: DashboardViewModel = viewModel(factory = factory)
     val state by viewModel.uiState.collectAsState()
+    var selectedDay by remember { mutableStateOf(DateUtils.startOfDay(DateUtils.now())) }
+
+    val selectedDayClasses = state.weekClasses.filter { DateUtils.isSameDay(it.dateMillis, selectedDay) }
+    val isToday = DateUtils.isSameDay(selectedDay, DateUtils.now())
+    val scheduleTitle = if (isToday) "Today's Schedule" else DateUtils.formatFullDate(selectedDay)
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -64,8 +74,8 @@ fun DashboardScreen(
             WeekCalendarStrip(
                 days = viewModel.weekDays,
                 indicators = state.weekDayIndicators,
-                selectedDay = null,
-                onDaySelected = {},
+                selectedDay = selectedDay,
+                onDaySelected = { selectedDay = it },
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
         }
@@ -140,17 +150,22 @@ fun DashboardScreen(
 
         item {
             Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-                SectionCard(title = "Today's Classes") {
-                    if (state.todayClasses.isEmpty()) {
+                SectionCard(title = scheduleTitle) {
+                    if (selectedDayClasses.isEmpty()) {
                         Text(
-                            text = "No classes logged for today.",
+                            text = if (isToday) "No classes logged for today." else "No classes logged for this day.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 8.dp)
                         )
                     } else {
-                        state.todayClasses.forEach { entry ->
-                            EntryListItem(entry)
+                        Column(
+                            modifier = Modifier.padding(top = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            selectedDayClasses.forEach { entry ->
+                                ClassScheduleBlock(entry)
+                            }
                         }
                     }
                 }
