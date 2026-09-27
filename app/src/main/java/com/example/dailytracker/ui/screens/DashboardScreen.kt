@@ -10,10 +10,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -23,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -56,7 +61,10 @@ fun DashboardScreen(
 ) {
     val viewModel: DashboardViewModel = viewModel(factory = factory)
     val state by viewModel.uiState.collectAsState()
-    var selectedDay by remember { mutableStateOf(DateUtils.startOfDay(DateUtils.now())) }
+    var selectedDayIndex by remember {
+        mutableStateOf(DateUtils.weekOf(DateUtils.now()).indexOfFirst { DateUtils.isSameDay(it, DateUtils.now()) })
+    }
+    val selectedDay = state.weekDays.getOrElse(selectedDayIndex.coerceIn(0, 6)) { DateUtils.now() }
 
     val selectedDayClasses = state.weekClasses.filter { DateUtils.isSameDay(it.dateMillis, selectedDay) }
     val isToday = DateUtils.isSameDay(selectedDay, DateUtils.now())
@@ -71,13 +79,36 @@ fun DashboardScreen(
         }
 
         item {
-            WeekCalendarStrip(
-                days = viewModel.weekDays,
-                indicators = state.weekDayIndicators,
-                selectedDay = selectedDay,
-                onDaySelected = { selectedDay = it },
-                modifier = Modifier.padding(horizontal = 20.dp)
-            )
+            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { viewModel.previousWeek() }) {
+                        Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous week")
+                    }
+                    Text(
+                        text = if (state.weekDays.size == 7)
+                            "${DateUtils.formatMonthDay(state.weekDays.first())} \u2013 ${DateUtils.formatMonthDay(state.weekDays.last())}"
+                        else "",
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 4.dp)
+                    )
+                    IconButton(onClick = { viewModel.nextWeek() }) {
+                        Icon(Icons.Filled.ChevronRight, contentDescription = "Next week")
+                    }
+                }
+                WeekCalendarStrip(
+                    days = state.weekDays,
+                    indicators = state.weekDayIndicators,
+                    selectedDay = selectedDay,
+                    onDaySelected = { day ->
+                        selectedDayIndex = state.weekDays.indexOf(day).coerceAtLeast(0)
+                    }
+                )
+            }
         }
 
         item {

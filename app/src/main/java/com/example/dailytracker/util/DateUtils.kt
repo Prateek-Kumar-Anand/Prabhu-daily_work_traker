@@ -88,6 +88,42 @@ object DateUtils {
 
     fun now(): Long = System.currentTimeMillis()
 
+    /** [millis] shifted by [days] calendar days, same time of day. */
+    fun addDays(millis: Long, days: Int): Long {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = millis
+        cal.add(Calendar.DAY_OF_MONTH, days)
+        return cal.timeInMillis
+    }
+
+    fun formatMonthDay(millis: Long): String =
+        SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(millis))
+
+    /**
+     * One dateMillis (same hour/minute as [startMillis]) for every day in the
+     * next [weeks] weeks (starting from [startMillis]'s day, inclusive) whose
+     * Calendar.DAY_OF_WEEK is in [daysOfWeek].
+     */
+    fun occurrencesOnDays(startMillis: Long, daysOfWeek: Set<Int>, weeks: Int): List<Long> {
+        if (daysOfWeek.isEmpty()) return listOf(startMillis)
+        val hour = hourOf(startMillis)
+        val minute = minuteOf(startMillis)
+        val startDay = startOfDay(startMillis)
+        val result = mutableListOf<Long>()
+        for (i in 0 until weeks * 7) {
+            val dayMillis = addDays(startDay, i)
+            val cal = Calendar.getInstance().apply { timeInMillis = dayMillis }
+            if (cal.get(Calendar.DAY_OF_WEEK) in daysOfWeek) {
+                cal.set(Calendar.HOUR_OF_DAY, hour)
+                cal.set(Calendar.MINUTE, minute)
+                cal.set(Calendar.SECOND, 0)
+                cal.set(Calendar.MILLISECOND, 0)
+                result.add(cal.timeInMillis)
+            }
+        }
+        return result
+    }
+
     /** Today's date combined with the given hour/minute, as millis. */
     fun atTimeToday(hour: Int, minute: Int): Long {
         val cal = Calendar.getInstance()

@@ -12,6 +12,7 @@ import com.example.dailytracker.data.repository.ActivityRepository
 import com.example.dailytracker.data.repository.ClassRepository
 import com.example.dailytracker.data.repository.ExpenseRepository
 import com.example.dailytracker.util.DateUtils
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -21,6 +22,7 @@ data class DashboardUiState(
     val todayClassCount: Int = 0,
     val todayActivityCount: Int = 0,
     val monthSpending: Double = 0.0,
+    val weekDays: List<Long> = emptyList(),
     val weekDayIndicators: Map<Long, Set<EntryType>> = emptyMap(),
     val recentSpending: List<TrackEntry> = emptyList(),
     val weekClasses: List<TrackEntry> = emptyList(),
@@ -52,7 +54,21 @@ class DashboardViewModel(
     private val monthStart = DateUtils.startOfMonth(now)
     private val monthEnd = DateUtils.endOfMonth(now)
 
-    val weekDays: List<Long> = DateUtils.weekOf(now)
+    // The first day (Sunday) of the currently browsed week - navigable via
+    // previousWeek()/nextWeek(), independent of "today"'s totals above.
+    private val weekStart = MutableStateFlow(DateUtils.weekOf(now).first())
+
+    fun previousWeek() {
+        weekStart.value = DateUtils.addDays(weekStart.value, -7)
+    }
+
+    fun nextWeek() {
+        weekStart.value = DateUtils.addDays(weekStart.value, 7)
+    }
+
+    fun currentWeek() {
+        weekStart.value = DateUtils.weekOf(DateUtils.now()).first()
+    }
 
     private val totalsFlow = combine(
         expenseRepository.totalBetween(todayStart, todayEnd),
@@ -71,7 +87,9 @@ class DashboardViewModel(
         Lists(expenses, classes, activities)
     }
 
-    val uiState = combine(totalsFlow, listsFlow) { totals, lists ->
+    val uiState = combine(totalsFlow, listsFlow, weekStart) { totals, lists, weekStartMillis ->
+        val weekDays = (0 until 7).map { DateUtils.addDays(weekStartMillis, it) }
+
         val indicators = mutableMapOf<Long, MutableSet<EntryType>>()
         fun mark(dateMillis: Long, type: EntryType) {
             val dayStart = weekDays.firstOrNull { DateUtils.isSameDay(it, dateMillis) } ?: return
@@ -97,6 +115,7 @@ class DashboardViewModel(
             todayClassCount = totals.todayClasses,
             todayActivityCount = totals.todayActivities,
             monthSpending = totals.monthSpending,
+            weekDays = weekDays,
             weekDayIndicators = indicators,
             recentSpending = recentSpending,
             weekClasses = weekClasses,
