@@ -13,4 +13,5 @@ class ClassRepository(private val dao: ClassDao) {
     suspend fun add(classEntry: ClassEntity): Long = dao.insert(classEntry)
     suspend fun update(classEntry: ClassEntity) = dao.update(classEntry)
     suspend fun remove(classEntry: ClassEntity) = dao.delete(classEntry)
+    suspend fun getById(id: Long): ClassEntity? = dao.getById(id)
 }

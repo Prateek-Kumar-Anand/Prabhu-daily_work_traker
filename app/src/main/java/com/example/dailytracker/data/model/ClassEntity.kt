@@ -12,5 +12,6 @@ data class ClassEntity(
     val room: String,
     val note: String,
     val dateMillis: Long,
+    val endDateMillis: Long,
     val attended: Boolean = true
 )

@@ -9,17 +9,22 @@ import com.example.dailytracker.util.ClassReminderScheduler
 import com.example.dailytracker.util.DateUtils
 import kotlinx.coroutines.launch
 
-/** How many weeks ahead a recurring class is generated for. */
-private const val REPEAT_WEEKS = 8
-
 class ClassViewModel(
     private val repository: ClassRepository,
     private val appContext: Context
 ) : ViewModel() {
 
+    fun loadClass(id: Long, onLoaded: (ClassEntity?) -> Unit) {
+        viewModelScope.launch {
+            onLoaded(repository.getById(id))
+        }
+    }
+
     /**
-     * @param repeatDays Calendar.DAY_OF_WEEK values (SUNDAY=1..SATURDAY=7) to
-     * repeat this class on. Empty means just the one date/time picked.
+     * Creates a new class. When [repeatDays] is non-empty, one row is
+     * generated for every matching weekday from [dateMillis] through
+     * [repeatUntilMillis] (inclusive), each keeping the same start/end
+     * time-of-day and duration.
      */
     fun addClass(
         subject: String,
@@ -28,21 +33,24 @@ class ClassViewModel(
         room: String,
         note: String,
         dateMillis: Long,
+        endDateMillis: Long,
         attended: Boolean,
         remindMe: Boolean,
         repeatDays: Set<Int>,
+        repeatUntilMillis: Long,
         onDone: () -> Unit
     ) {
         viewModelScope.launch {
-            val occurrences = DateUtils.occurrencesOnDays(dateMillis, repeatDays, REPEAT_WEEKS)
-            occurrences.forEach { occurrenceMillis ->
+            val occurrenceStarts = DateUtils.occurrencesOnDays(dateMillis, repeatDays, repeatUntilMillis)
+            occurrenceStarts.forEach { occurrenceStart ->
+                val occurrenceEnd = DateUtils.withTimeOf(occurrenceStart, endDateMillis)
                 // "Attended" only makes sense for a class that already happened;
                 // for a repeating series only apply the toggle to today's own
                 // occurrence (if any) and default the rest to false.
                 val attendedForOccurrence = if (repeatDays.isEmpty()) {
                     attended
                 } else {
-                    attended && DateUtils.isSameDay(occurrenceMillis, DateUtils.now())
+                    attended && DateUtils.isSameDay(occurrenceStart, DateUtils.now())
                 }
                 val id = repository.add(
                     ClassEntity(
@@ -51,14 +59,52 @@ class ClassViewModel(
                         teacher = teacher,
                         room = room,
                         note = note,
-                        dateMillis = occurrenceMillis,
+                        dateMillis = occurrenceStart,
+                        endDateMillis = occurrenceEnd,
                         attended = attendedForOccurrence
                     )
                 )
                 if (remindMe) {
                     val detail = listOf(type, room, teacher).filter { it.isNotBlank() }.joinToString(" · ")
-                    ClassReminderScheduler.schedule(appContext, id, subject, detail, occurrenceMillis)
+                    ClassReminderScheduler.schedule(appContext, id, subject, detail, occurrenceStart)
                 }
+            }
+            onDone()
+        }
+    }
+
+    /** Updates a single existing class (never regenerates a series). */
+    fun updateClass(
+        id: Long,
+        subject: String,
+        type: String,
+        teacher: String,
+        room: String,
+        note: String,
+        dateMillis: Long,
+        endDateMillis: Long,
+        attended: Boolean,
+        remindMe: Boolean,
+        onDone: () -> Unit
+    ) {
+        viewModelScope.launch {
+            repository.update(
+                ClassEntity(
+                    id = id,
+                    subject = subject,
+                    type = type,
+                    teacher = teacher,
+                    room = room,
+                    note = note,
+                    dateMillis = dateMillis,
+                    endDateMillis = endDateMillis,
+                    attended = attended
+                )
+            )
+            ClassReminderScheduler.cancel(appContext, id)
+            if (remindMe) {
+                val detail = listOf(type, room, teacher).filter { it.isNotBlank() }.joinToString(" · ")
+                ClassReminderScheduler.schedule(appContext, id, subject, detail, dateMillis)
             }
             onDone()
         }

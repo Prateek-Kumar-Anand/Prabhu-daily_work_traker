@@ -1,6 +1,7 @@
 package com.example.dailytracker.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,13 +26,15 @@ import com.example.dailytracker.util.DateUtils
 /**
  * A single class rendered as a colored, time-labeled block - the "Add a
  * Class" equivalent of the reference dashboard's Paid Leave / Vacation bars.
+ * Tappable to open the class for editing.
  */
 @Composable
-fun ClassScheduleBlock(entry: TrackEntry, modifier: Modifier = Modifier) {
+fun ClassScheduleBlock(entry: TrackEntry, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .background(ClassTealLight, RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -55,8 +58,13 @@ fun ClassScheduleBlock(entry: TrackEntry, modifier: Modifier = Modifier) {
                 )
             }
         }
+        val timeLabel = if (entry.endMillis != null) {
+            "${DateUtils.formatTime(entry.dateMillis)} \u2013 ${DateUtils.formatTime(entry.endMillis)}"
+        } else {
+            DateUtils.formatTime(entry.dateMillis)
+        }
         Text(
-            text = DateUtils.formatTime(entry.dateMillis),
+            text = timeLabel,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Medium,
             color = Color(0xFF0F4C46),

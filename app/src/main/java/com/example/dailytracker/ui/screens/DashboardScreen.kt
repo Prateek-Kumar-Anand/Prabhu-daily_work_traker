@@ -57,7 +57,9 @@ fun DashboardScreen(
     onViewAllActivities: () -> Unit,
     onAddSpending: () -> Unit,
     onAddClass: () -> Unit,
-    onAddActivity: () -> Unit
+    onAddActivity: () -> Unit,
+    onEditClass: (Long) -> Unit,
+    onOpenUsage: () -> Unit
 ) {
     val viewModel: DashboardViewModel = viewModel(factory = factory)
     val state by viewModel.uiState.collectAsState()
@@ -72,7 +74,7 @@ fun DashboardScreen(
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
         item {
-            AppTopBar(title = "Overview")
+            AppTopBar(title = "Overview", onUsageClick = onOpenUsage)
         }
 
         item {
@@ -189,7 +191,7 @@ fun DashboardScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             selectedDayClasses.forEach { entry ->
-                                ClassScheduleBlock(entry)
+                                ClassScheduleBlock(entry, onClick = { onEditClass(entry.id) })
                             }
                         }
                     }

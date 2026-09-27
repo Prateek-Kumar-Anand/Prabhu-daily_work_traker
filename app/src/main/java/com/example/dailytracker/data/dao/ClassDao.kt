@@ -19,6 +19,9 @@ interface ClassDao {
     @Delete
     suspend fun delete(classEntry: ClassEntity)
 
+    @Query("SELECT * FROM classes WHERE id = :id LIMIT 1")
+    suspend fun getById(id: Long): ClassEntity?
+
     @Query("SELECT * FROM classes ORDER BY dateMillis DESC")
     fun getAll(): Flow<List<ClassEntity>>
 
