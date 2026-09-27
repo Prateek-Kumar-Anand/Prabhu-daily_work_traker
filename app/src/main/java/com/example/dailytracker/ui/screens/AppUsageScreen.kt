@@ -77,7 +77,7 @@ fun AppUsageScreen(onBack: () -> Unit) {
         Text(
             text = "App Usage Today",
             style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(horizontal = 20.dp, bottom = 16.dp)
+            modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
         )
 
         when {
