@@ -41,8 +41,15 @@ jobs:
 
       # v5, not v6: v6 moves caching behind Gradle's own commercial Terms of
       # Use. v5 is still MIT-licensed and already runs on Node 24.
+      # build-scan-publish auto-publishes a Build Scan for every Gradle
+      # invocation in this job; the terms-of-use inputs are required for
+      # that to happen non-interactively.
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
+        with:
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+          build-scan-terms-of-use-agree: "yes"
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
