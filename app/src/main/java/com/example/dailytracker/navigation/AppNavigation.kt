@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.dailytracker.ui.components.BottomDestination
 import com.example.dailytracker.ui.components.BottomNavBar
@@ -33,15 +34,19 @@ private object Routes {
 @Composable
 fun AppNavigation(factory: ViewModelFactory) {
     val navController: NavHostController = rememberNavController()
-    var selectedTab by remember { mutableStateOf(BottomDestination.Dashboard) }
     var showQuickAdd by remember { mutableStateOf(false) }
+
+    // Derived from the actual back stack (not a separately-tracked var) so it
+    // stays correct on system back-press or an Add screen's own back arrow,
+    // not just on bottom-nav taps.
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+    val selectedTab = if (currentRoute == Routes.HISTORY) BottomDestination.History else BottomDestination.Dashboard
 
     Scaffold(
         bottomBar = {
             BottomNavBar(
                 selected = selectedTab,
                 onSelect = { destination ->
-                    selectedTab = destination
                     when (destination) {
                         BottomDestination.Dashboard -> navController.navigate(Routes.DASHBOARD) {
                             popUpTo(Routes.DASHBOARD) { inclusive = true }
@@ -63,14 +68,8 @@ fun AppNavigation(factory: ViewModelFactory) {
             composable(Routes.DASHBOARD) {
                 DashboardScreen(
                     factory = factory,
-                    onViewAllTransactions = {
-                        selectedTab = BottomDestination.History
-                        navController.navigate(Routes.HISTORY)
-                    },
-                    onViewAllActivities = {
-                        selectedTab = BottomDestination.History
-                        navController.navigate(Routes.HISTORY)
-                    },
+                    onViewAllTransactions = { navController.navigate(Routes.HISTORY) },
+                    onViewAllActivities = { navController.navigate(Routes.HISTORY) },
                     onAddSpending = { navController.navigate(Routes.ADD_EXPENSE) },
                     onAddClass = { navController.navigate(Routes.ADD_CLASS) },
                     onAddActivity = { navController.navigate(Routes.ADD_ACTIVITY) }

@@ -1,6 +1,5 @@
 package com.example.dailytracker.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -28,7 +27,6 @@ private val LightColors = lightColorScheme(
 
 @Composable
 fun DailyTrackerTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
     // The design is deliberately light-themed to match the source dashboard;

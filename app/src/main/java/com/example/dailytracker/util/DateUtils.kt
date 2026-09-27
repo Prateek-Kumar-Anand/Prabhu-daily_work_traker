@@ -140,4 +140,50 @@ object DateUtils {
 
     fun formatTime(millis: Long): String =
         SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date(millis))
+
+    fun addMonths(millis: Long, months: Int): Long {
+        val cal = Calendar.getInstance().apply { timeInMillis = millis }
+        cal.add(Calendar.MONTH, months)
+        return cal.timeInMillis
+    }
+
+    fun formatMonthYear(millis: Long): String =
+        SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(Date(millis))
+
+    fun isSameMonth(a: Long, b: Long): Boolean {
+        val ca = Calendar.getInstance().apply { timeInMillis = a }
+        val cb = Calendar.getInstance().apply { timeInMillis = b }
+        return ca.get(Calendar.YEAR) == cb.get(Calendar.YEAR) && ca.get(Calendar.MONTH) == cb.get(Calendar.MONTH)
+    }
+
+    /**
+     * The full grid of days to display for the month containing [anchorMillis]:
+     * that month's days plus enough leading/trailing days from the
+     * neighboring months to complete whole weeks (Sun..Sat), oldest first.
+     */
+    fun monthGrid(anchorMillis: Long): List<Long> {
+        val start = Calendar.getInstance().apply {
+            timeInMillis = anchorMillis
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
+        val leading = start.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY
+        start.add(Calendar.DAY_OF_MONTH, -leading)
+
+        val end = Calendar.getInstance().apply {
+            timeInMillis = anchorMillis
+            set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
+        val trailing = Calendar.SATURDAY - end.get(Calendar.DAY_OF_WEEK)
+        end.add(Calendar.DAY_OF_MONTH, trailing)
+
+        val days = mutableListOf<Long>()
+        val cursor = start.clone() as Calendar
+        while (!cursor.after(end)) {
+            days.add(cursor.timeInMillis)
+            cursor.add(Calendar.DAY_OF_MONTH, 1)
+        }
+        return days
+    }
 }

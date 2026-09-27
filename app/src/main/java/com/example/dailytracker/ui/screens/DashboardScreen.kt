@@ -34,9 +34,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dailytracker.ui.components.AppTopBar
 import com.example.dailytracker.ui.components.ClassScheduleBlock
 import com.example.dailytracker.ui.components.EntryListItem
+import com.example.dailytracker.ui.components.MonthCalendarGrid
 import com.example.dailytracker.ui.components.SectionCard
 import com.example.dailytracker.ui.components.SummaryCard
-import com.example.dailytracker.ui.components.WeekCalendarStrip
 import com.example.dailytracker.ui.theme.ActivityPurple
 import com.example.dailytracker.ui.theme.ActivityPurpleLight
 import com.example.dailytracker.ui.theme.ClassTeal
@@ -61,12 +61,9 @@ fun DashboardScreen(
 ) {
     val viewModel: DashboardViewModel = viewModel(factory = factory)
     val state by viewModel.uiState.collectAsState()
-    var selectedDayIndex by remember {
-        mutableStateOf(DateUtils.weekOf(DateUtils.now()).indexOfFirst { DateUtils.isSameDay(it, DateUtils.now()) })
-    }
-    val selectedDay = state.weekDays.getOrElse(selectedDayIndex.coerceIn(0, 6)) { DateUtils.now() }
+    var selectedDay by remember { mutableStateOf(DateUtils.startOfDay(DateUtils.now())) }
 
-    val selectedDayClasses = state.weekClasses.filter { DateUtils.isSameDay(it.dateMillis, selectedDay) }
+    val selectedDayClasses = state.calendarClasses.filter { DateUtils.isSameDay(it.dateMillis, selectedDay) }
     val isToday = DateUtils.isSameDay(selectedDay, DateUtils.now())
     val scheduleTitle = if (isToday) "Today's Schedule" else DateUtils.formatFullDate(selectedDay)
 
@@ -84,29 +81,26 @@ fun DashboardScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = { viewModel.previousWeek() }) {
-                        Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous week")
+                    IconButton(onClick = { viewModel.previousMonth() }) {
+                        Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous month")
                     }
                     Text(
-                        text = if (state.weekDays.size == 7)
-                            "${DateUtils.formatMonthDay(state.weekDays.first())} \u2013 ${DateUtils.formatMonthDay(state.weekDays.last())}"
-                        else "",
+                        text = if (state.calendarMonthAnchor != 0L) DateUtils.formatMonthYear(state.calendarMonthAnchor) else "",
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier
                             .weight(1f)
                             .padding(horizontal = 4.dp)
                     )
-                    IconButton(onClick = { viewModel.nextWeek() }) {
-                        Icon(Icons.Filled.ChevronRight, contentDescription = "Next week")
+                    IconButton(onClick = { viewModel.nextMonth() }) {
+                        Icon(Icons.Filled.ChevronRight, contentDescription = "Next month")
                     }
                 }
-                WeekCalendarStrip(
-                    days = state.weekDays,
-                    indicators = state.weekDayIndicators,
+                MonthCalendarGrid(
+                    days = state.calendarDays,
+                    indicators = state.calendarDayIndicators,
+                    monthAnchor = state.calendarMonthAnchor,
                     selectedDay = selectedDay,
-                    onDaySelected = { day ->
-                        selectedDayIndex = state.weekDays.indexOf(day).coerceAtLeast(0)
-                    }
+                    onDaySelected = { day -> selectedDay = day }
                 )
             }
         }
