@@ -1,0 +1,27 @@
+package com.prabhu.app
+
+import android.app.Application
+import com.prabhu.app.data.AppDatabase
+import com.prabhu.app.data.repository.ActivityRepository
+import com.prabhu.app.data.repository.ClassRepository
+import com.prabhu.app.data.repository.ExpenseRepository
+import com.prabhu.app.util.NotificationHelper
+
+/**
+ * Holds the single Room database instance and the repositories built on top
+ * of it. Everything runs locally on-device; there is no network or AI
+ * integration anywhere in this app.
+ */
+class DailyTrackerApplication : Application() {
+
+    private val database by lazy { AppDatabase.getInstance(this) }
+
+    val expenseRepository by lazy { ExpenseRepository(database.expenseDao()) }
+    val classRepository by lazy { ClassRepository(database.classDao()) }
+    val activityRepository by lazy { ActivityRepository(database.activityDao()) }
+
+    override fun onCreate() {
+        super.onCreate()
+        NotificationHelper.createChannel(this)
+    }
+}

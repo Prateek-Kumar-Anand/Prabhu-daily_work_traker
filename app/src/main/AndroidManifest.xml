@@ -9,6 +9,12 @@
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
 
+    <!-- Needed so every installed app (Snapchat etc.) can be resolved by name/icon
+         on Android 11+; otherwise only a handful of apps are visible. -->
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
     <application
         android:name=".DailyTrackerApplication"
         android:allowBackup="false"

@@ -5,24 +5,45 @@ plugins {
 }
 
 android {
-    namespace = "com.example.dailytracker"
+    namespace = "com.prabhu.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.dailytracker"
+        applicationId = "com.prabhu.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        // Always increases with every build so a new APK installs as an update.
+        versionCode = (System.currentTimeMillis() / 60000L).toInt()
+        versionName = "1.1"
 
         vectorDrawables {
             useSupportLibrary = true
         }
     }
 
+    // Fixed signing key: every build (CI or local) is signed the same way, so
+    // Android installs a new APK over the existing app and keeps its data.
+    signingConfigs {
+        create("studytrack") {
+            storeFile = file("studytrack.jks")
+            storePassword = "studytrack"
+            keyAlias = "studytrack"
+            keyPassword = "studytrack"
+        }
+    }
+
+    lint {
+        checkReleaseBuilds = false
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("studytrack")
+        }
         release {
-            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("studytrack")
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -67,6 +88,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.1")
     implementation("androidx.navigation:navigation-compose:2.7.7")
+
+    // Applies the Compose baseline profiles on first launch (faster, smoother UI).
+    implementation("androidx.profileinstaller:profileinstaller:1.3.1")
 
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")

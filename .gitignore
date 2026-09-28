@@ -20,3 +20,6 @@ local.properties
 # Keystore (never commit real signing keys)
 *.jks
 *.keystore
+
+# ...except the fixed signing key that makes updates install over the old app
+!app/studytrack.jks

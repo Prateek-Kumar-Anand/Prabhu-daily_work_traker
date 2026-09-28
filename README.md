@@ -1,4 +1,4 @@
-# StudyTrack
+# Prabhu
 
 A native Android app (Kotlin + Jetpack Compose) for students to record their
 **spending**, **classes**, and **daily activities** — built entirely offline,
@@ -19,6 +19,8 @@ and the AI-assistant panel was replaced with a plain **Quick Add** panel
   Other), teacher, room, note, attended toggle, date
 - **Log Activities** — title, category (Study, Assignment, Exam Prep,
   Personal, Errand, Other), details, completed toggle, date
+- **Edit a class** — shift a single day's class to another day, or delete it for
+  one day or several days at once
 - **Dashboard** — weekly calendar strip, today's totals, today's classes,
   recent spending and activities
 - **History** — full combined list, filterable by type, with running totals
@@ -32,7 +34,7 @@ that builds the APK for you in the cloud — you never need Android Studio.
 1. Create a new **public or private GitHub repository** and push this project
    to it:
    ```bash
-   cd StudyTrack
+   cd Prabhu
    git init
    git add .
    git commit -m "Initial commit"
@@ -43,9 +45,9 @@ that builds the APK for you in the cloud — you never need Android Studio.
 2. Go to the **Actions** tab of your repository on GitHub. The "Build APK"
    workflow runs automatically on every push to `main`.
 3. Open the latest successful run and scroll to **Artifacts** — download
-   `daily-tracker-debug-apk.zip`, which contains `app-debug.apk`.
+   `Prabhu-apk.zip`, which contains `Prabhu.apk`.
 4. Transfer the APK to your phone (email it to yourself, use Google Drive,
-   or `adb install app-debug.apk`) and install it. You'll need to allow
+   or `adb install -r Prabhu.apk`) and install it. You'll need to allow
    "Install unknown apps" for whichever app you used to open the file.
 
 ### Get a permanent download link (Releases)
@@ -59,20 +61,18 @@ git push origin v1.0.0
 ```
 
 This triggers the same workflow, which will also publish a **GitHub Release**
-for `v1.0.0` with `app-debug.apk` attached — a permanent link you can share
+for `v1.0.0` with `Prabhu.apk` attached — a permanent link you can share
 or bookmark, under the **Releases** section of your repo.
 
-> The debug APK is signed with Android's default debug key, which is fine for
-> installing on your own device but not for the Play Store. If you later want
-> a Play-Store-ready release build, you'll need to add your own signing
-> keystore as a repository secret and extend the workflow — ask if you'd like
-> that set up.
+> Every build is signed with the fixed key in `app/studytrack.jks`, so a new
+> APK installs over the old one as an update and keeps your data. Keep this
+> key: builds signed with a different key cannot update an installed copy.
 
 ## Building locally in Android Studio (optional)
 
 1. Install [Android Studio](https://developer.android.com/studio) (Giraffe or
    newer).
-2. **File → Open** and select the `StudyTrack` folder.
+2. **File → Open** and select the `Prabhu` folder.
 3. Let Gradle sync (it will download the Android SDK platform 34 components
    automatically if needed), then click **Run ▶** with a device or emulator
    connected.
@@ -87,7 +87,7 @@ be cleared once when the schema changes. This only happens the one time.
 ## Project structure
 
 ```
-app/src/main/java/com/example/dailytracker/
+app/src/main/java/com/prabhu/app/
 ├── data/            Room entities, DAOs, database, repositories
 ├── viewmodel/        ViewModels for Dashboard, Add screens, and History
 ├── ui/theme/         Colors, typography, Material3 theme

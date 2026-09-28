@@ -1,0 +1,248 @@
+package com.prabhu.app.util
+
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
+
+/** SimpleDateFormat is expensive to build and not thread-safe: keep one per thread. */
+private class CachedFormat(private val pattern: String) {
+    private val local = object : ThreadLocal<SimpleDateFormat>() {
+        override fun initialValue(): SimpleDateFormat = SimpleDateFormat(pattern, Locale.getDefault())
+    }
+
+    fun format(millis: Long): String = local.get()!!.format(Date(millis))
+}
+
+object DateUtils {
+
+    private val dayLetterFormat = CachedFormat("EEEEE")
+    private val dayNumberFormat = CachedFormat("d")
+    private val fullDateFormat = CachedFormat("EEEE, MMM d")
+    private val shortDateFormat = CachedFormat("MMM d, yyyy")
+    private val monthDayFormat = CachedFormat("MMM d")
+    private val weekdayDateFormat = CachedFormat("EEE, MMM d, yyyy")
+    private val timeFormat = CachedFormat("h:mm a")
+    private val monthYearFormat = CachedFormat("MMMM yyyy")
+
+    private val calendarA = object : ThreadLocal<Calendar>() {
+        override fun initialValue(): Calendar = Calendar.getInstance()
+    }
+    private val calendarB = object : ThreadLocal<Calendar>() {
+        override fun initialValue(): Calendar = Calendar.getInstance()
+    }
+
+    private fun calendarAt(holder: ThreadLocal<Calendar>, millis: Long): Calendar {
+        val cal = holder.get()!!
+        cal.timeZone = TimeZone.getDefault()
+        cal.timeInMillis = millis
+        return cal
+    }
+
+    /** Start of the day (00:00:00.000) for the given millis, same calendar day. */
+    fun startOfDay(millis: Long): Long {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = millis
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return cal.timeInMillis
+    }
+
+    /** End of the day (23:59:59.999) for the given millis, same calendar day. */
+    fun endOfDay(millis: Long): Long {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = millis
+        cal.set(Calendar.HOUR_OF_DAY, 23)
+        cal.set(Calendar.MINUTE, 59)
+        cal.set(Calendar.SECOND, 59)
+        cal.set(Calendar.MILLISECOND, 999)
+        return cal.timeInMillis
+    }
+
+    fun startOfMonth(millis: Long): Long {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = millis
+        cal.set(Calendar.DAY_OF_MONTH, 1)
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return cal.timeInMillis
+    }
+
+    fun endOfMonth(millis: Long): Long {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = millis
+        cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH))
+        cal.set(Calendar.HOUR_OF_DAY, 23)
+        cal.set(Calendar.MINUTE, 59)
+        cal.set(Calendar.SECOND, 59)
+        cal.set(Calendar.MILLISECOND, 999)
+        return cal.timeInMillis
+    }
+
+    /** The 7 days (Sun..Sat) that contain [millis], as start-of-day millis, oldest first. */
+    fun weekOf(millis: Long): List<Long> {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = millis
+        cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return (0 until 7).map {
+            val day = cal.clone() as Calendar
+            day.add(Calendar.DAY_OF_MONTH, it)
+            day.timeInMillis
+        }
+    }
+
+    fun isSameDay(a: Long, b: Long): Boolean {
+        val ca = calendarAt(calendarA, a)
+        val cb = calendarAt(calendarB, b)
+        return ca.get(Calendar.YEAR) == cb.get(Calendar.YEAR) &&
+            ca.get(Calendar.DAY_OF_YEAR) == cb.get(Calendar.DAY_OF_YEAR)
+    }
+
+    fun dayLetter(millis: Long): String = dayLetterFormat.format(millis)
+
+    fun dayNumber(millis: Long): String = dayNumberFormat.format(millis)
+
+    fun formatFullDate(millis: Long): String = fullDateFormat.format(millis)
+
+    fun formatShortDate(millis: Long): String = shortDateFormat.format(millis)
+
+    fun now(): Long = System.currentTimeMillis()
+
+    /** [millis] shifted by [days] calendar days, same time of day. */
+    fun addDays(millis: Long, days: Int): Long {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = millis
+        cal.add(Calendar.DAY_OF_MONTH, days)
+        return cal.timeInMillis
+    }
+
+    fun formatMonthDay(millis: Long): String = monthDayFormat.format(millis)
+
+    fun formatWeekdayDate(millis: Long): String = weekdayDateFormat.format(millis)
+
+    /**
+     * One dateMillis (same hour/minute as [startMillis]) for every day from
+     * [startMillis]'s day through [untilMillis]'s day (inclusive) whose
+     * Calendar.DAY_OF_WEEK is in [daysOfWeek]. Empty [daysOfWeek] means "just
+     * this one date/time", ignoring [untilMillis].
+     */
+    fun occurrencesOnDays(startMillis: Long, daysOfWeek: Set<Int>, untilMillis: Long): List<Long> {
+        if (daysOfWeek.isEmpty()) return listOf(startMillis)
+        val hour = hourOf(startMillis)
+        val minute = minuteOf(startMillis)
+        val startDay = startOfDay(startMillis)
+        val endDay = startOfDay(untilMillis).coerceAtLeast(startDay)
+        val result = mutableListOf<Long>()
+        var cursor = startDay
+        while (cursor <= endDay) {
+            val cal = Calendar.getInstance().apply { timeInMillis = cursor }
+            if (cal.get(Calendar.DAY_OF_WEEK) in daysOfWeek) {
+                cal.set(Calendar.HOUR_OF_DAY, hour)
+                cal.set(Calendar.MINUTE, minute)
+                cal.set(Calendar.SECOND, 0)
+                cal.set(Calendar.MILLISECOND, 0)
+                result.add(cal.timeInMillis)
+            }
+            cursor = addDays(cursor, 1)
+        }
+        return result
+    }
+
+    /** [baseMillis]'s day combined with [otherMillis]'s hour/minute. */
+    fun withTimeOf(baseMillis: Long, otherMillis: Long): Long {
+        val cal = Calendar.getInstance().apply { timeInMillis = baseMillis }
+        cal.set(Calendar.HOUR_OF_DAY, hourOf(otherMillis))
+        cal.set(Calendar.MINUTE, minuteOf(otherMillis))
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return cal.timeInMillis
+    }
+
+    /** Today's date combined with the given hour/minute, as millis. */
+    fun atTimeToday(hour: Int, minute: Int): Long {
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.HOUR_OF_DAY, hour)
+        cal.set(Calendar.MINUTE, minute)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return cal.timeInMillis
+    }
+
+    fun hourOf(millis: Long): Int = Calendar.getInstance().apply { timeInMillis = millis }.get(Calendar.HOUR_OF_DAY)
+
+    fun minuteOf(millis: Long): Int = Calendar.getInstance().apply { timeInMillis = millis }.get(Calendar.MINUTE)
+
+    fun formatTime(millis: Long): String = timeFormat.format(millis)
+
+    fun addMonths(millis: Long, months: Int): Long {
+        val cal = Calendar.getInstance().apply { timeInMillis = millis }
+        cal.add(Calendar.MONTH, months)
+        return cal.timeInMillis
+    }
+
+    fun formatMonthYear(millis: Long): String = monthYearFormat.format(millis)
+
+    fun isSameMonth(a: Long, b: Long): Boolean {
+        val ca = calendarAt(calendarA, a)
+        val cb = calendarAt(calendarB, b)
+        return ca.get(Calendar.YEAR) == cb.get(Calendar.YEAR) && ca.get(Calendar.MONTH) == cb.get(Calendar.MONTH)
+    }
+
+    /**
+     * The full grid of days to display for the month containing [anchorMillis]:
+     * that month's days plus enough leading/trailing days from the
+     * neighboring months to complete whole weeks (Sun..Sat), oldest first.
+     */
+    fun monthGrid(anchorMillis: Long): List<Long> {
+        val start = Calendar.getInstance().apply {
+            timeInMillis = anchorMillis
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
+        val leading = start.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY
+        start.add(Calendar.DAY_OF_MONTH, -leading)
+
+        val end = Calendar.getInstance().apply {
+            timeInMillis = anchorMillis
+            set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
+        val trailing = Calendar.SATURDAY - end.get(Calendar.DAY_OF_WEEK)
+        end.add(Calendar.DAY_OF_MONTH, trailing)
+
+        val days = mutableListOf<Long>()
+        val cursor = start.clone() as Calendar
+        while (!cursor.after(end)) {
+            days.add(cursor.timeInMillis)
+            cursor.add(Calendar.DAY_OF_MONTH, 1)
+        }
+        return days
+    }
+
+    /** Local calendar day -> UTC-midnight millis, as Compose's DatePicker expects. */
+    fun localDateToUtcMillis(millis: Long): Long {
+        val local = Calendar.getInstance().apply { timeInMillis = millis }
+        val utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        utc.clear()
+        utc.set(local.get(Calendar.YEAR), local.get(Calendar.MONTH), local.get(Calendar.DAY_OF_MONTH))
+        return utc.timeInMillis
+    }
+
+    /** UTC-midnight millis from Compose's DatePicker -> local start-of-day millis. */
+    fun utcMillisToLocalDate(utcMillis: Long): Long {
+        val utc = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = utcMillis }
+        val local = Calendar.getInstance()
+        local.clear()
+        local.set(utc.get(Calendar.YEAR), utc.get(Calendar.MONTH), utc.get(Calendar.DAY_OF_MONTH))
+        return local.timeInMillis
+    }
+}
