@@ -4,6 +4,11 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+// The package was renamed from com.example.dailytracker to com.prabhu.app. If the
+// old folder is still sitting in the repo (copying files over doesn't delete
+// it), its stale sources break the build - so remove it before compiling.
+file("src/main/java/com/example/dailytracker").deleteRecursively()
+
 android {
     namespace = "com.prabhu.app"
     compileSdk = 34
