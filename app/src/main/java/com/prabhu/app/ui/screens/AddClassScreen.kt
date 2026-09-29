@@ -86,6 +86,7 @@ fun AddClassScreen(factory: ViewModelFactory, classId: Long? = null, onBack: () 
     var showRepeatUntilPicker by remember { mutableStateOf(false) }
     var showShiftPicker by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var isSaving by remember { mutableStateOf(false) }
 
     LaunchedEffect(classId) {
         if (classId != null) {
@@ -320,6 +321,7 @@ fun AddClassScreen(factory: ViewModelFactory, classId: Long? = null, onBack: () 
         }
 
         Button(
+            enabled = !isSaving,
             onClick = {
                 val repeatDays = when (repeatChoice) {
                     repeatOptions[1] -> weekdaySet
@@ -330,15 +332,23 @@ fun AddClassScreen(factory: ViewModelFactory, classId: Long? = null, onBack: () 
                     subject.isBlank() -> subjectError = true
                     classEndTimeMillis <= classTimeMillis -> endTimeError = true
                     !isEditMode && repeatChoice == repeatOptions[2] && customDays.isEmpty() -> customDaysError = true
-                    isEditMode -> viewModel.updateClass(
-                        classId!!, subject, type, teacher, room, note,
-                        classTimeMillis, classEndTimeMillis, attended, remindMe
-                    ) { onBack() }
-                    else -> viewModel.addClass(
-                        subject, type, teacher, room, note,
-                        classTimeMillis, classEndTimeMillis, attended, remindMe,
-                        repeatDays, repeatUntilMillis
-                    ) { onBack() }
+                    // Disabling the button once a save is in flight (rather than only after
+                    // it finishes) stops a fast double tap from firing addClass twice.
+                    isEditMode -> {
+                        isSaving = true
+                        viewModel.updateClass(
+                            classId!!, subject, type, teacher, room, note,
+                            classTimeMillis, classEndTimeMillis, attended, remindMe
+                        ) { onBack() }
+                    }
+                    else -> {
+                        isSaving = true
+                        viewModel.addClass(
+                            subject, type, teacher, room, note,
+                            classTimeMillis, classEndTimeMillis, attended, remindMe,
+                            repeatDays, repeatUntilMillis
+                        ) { onBack() }
+                    }
                 }
             },
             modifier = Modifier

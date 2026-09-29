@@ -15,6 +15,11 @@ class ClassRepository(private val dao: ClassDao) {
     suspend fun remove(classEntry: ClassEntity) = dao.delete(classEntry)
     suspend fun getById(id: Long): ClassEntity? = dao.getById(id)
     suspend fun getBySubject(subject: String): List<ClassEntity> = dao.getBySubject(subject)
+
+    /** True if a class with this exact subject and start time is already logged - used to
+     * silently skip re-inserting the same class when Save is triggered more than once. */
+    suspend fun existsAt(subject: String, dateMillis: Long): Boolean =
+        dao.countMatching(subject, dateMillis) > 0
     suspend fun removeByIds(ids: List<Long>) {
         ids.chunked(500).forEach { dao.deleteByIds(it) }
     }

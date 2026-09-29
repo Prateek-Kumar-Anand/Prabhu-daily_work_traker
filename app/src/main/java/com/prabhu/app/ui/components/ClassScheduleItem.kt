@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.prabhu.app.data.model.TrackEntry
+import com.prabhu.app.ui.theme.AttendedGreen
 import com.prabhu.app.ui.theme.ClassTeal
 import com.prabhu.app.ui.theme.ClassTealLight
 import com.prabhu.app.util.DateUtils
@@ -38,11 +39,23 @@ fun ClassScheduleBlock(entry: TrackEntry, modifier: Modifier = Modifier, onClick
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(8.dp)
-                .background(ClassTeal, CircleShape)
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // Lights up once the class-time notification's "Yes" is tapped
+            // (or the "Attended" switch is on) - one dot per subject/day.
+            if (entry.attended) {
+                Box(
+                    modifier = Modifier
+                        .padding(end = 4.dp)
+                        .size(8.dp)
+                        .background(AttendedGreen, CircleShape)
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .background(ClassTeal, CircleShape)
+            )
+        }
         Column(modifier = Modifier.padding(start = 12.dp)) {
             Text(
                 text = entry.title,

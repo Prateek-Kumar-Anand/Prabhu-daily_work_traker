@@ -25,3 +25,5 @@ val ActivityPurple = Color(0xFF8B5CF6)
 val ActivityPurpleLight = Color(0xFFEEE7FD)
 
 val WarningAmber = Color(0xFFF5A623)
+
+val AttendedGreen = Color(0xFF22C55E)

@@ -45,6 +45,11 @@ class ClassViewModel(
         viewModelScope.launch {
             val occurrenceStarts = DateUtils.occurrencesOnDays(dateMillis, repeatDays, repeatUntilMillis)
             occurrenceStarts.forEach { occurrenceStart ->
+                // Same subject already logged at this exact start time - skip it instead of
+                // creating a duplicate row (can happen on a double tap of Save, or when
+                // repeat days overlap an existing entry).
+                if (repository.existsAt(subject, occurrenceStart)) return@forEach
+
                 val occurrenceEnd = DateUtils.withTimeOf(occurrenceStart, endDateMillis)
                 // "Attended" only makes sense for a class that already happened;
                 // for a repeating series only apply the toggle to today's own

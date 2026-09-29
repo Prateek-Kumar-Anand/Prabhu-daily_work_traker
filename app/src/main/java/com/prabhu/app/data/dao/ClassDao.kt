@@ -25,6 +25,9 @@ interface ClassDao {
     @Query("SELECT * FROM classes WHERE subject = :subject COLLATE NOCASE ORDER BY dateMillis ASC")
     suspend fun getBySubject(subject: String): List<ClassEntity>
 
+    @Query("SELECT COUNT(*) FROM classes WHERE subject = :subject COLLATE NOCASE AND dateMillis = :dateMillis")
+    suspend fun countMatching(subject: String, dateMillis: Long): Int
+
     @Query("SELECT * FROM classes WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): ClassEntity?
 

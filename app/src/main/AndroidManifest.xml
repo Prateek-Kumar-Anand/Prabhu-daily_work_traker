@@ -37,6 +37,10 @@
         <receiver
             android:name=".receiver.ClassReminderReceiver"
             android:exported="false" />
+
+        <receiver
+            android:name=".receiver.ClassAttendanceReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>
