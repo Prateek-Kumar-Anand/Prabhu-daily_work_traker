@@ -1,5 +1,6 @@
 package com.prabhu.app.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
@@ -22,6 +24,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,7 +33,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.prabhu.app.ui.components.AppTopBar
 import com.prabhu.app.ui.components.ClassScheduleBlock
@@ -39,6 +47,8 @@ import com.prabhu.app.ui.components.SectionCard
 import com.prabhu.app.ui.components.SummaryCard
 import com.prabhu.app.ui.theme.ActivityPurple
 import com.prabhu.app.ui.theme.ActivityPurpleLight
+import com.prabhu.app.ui.theme.AttendedGreen
+import com.prabhu.app.ui.theme.AttendedGreenLight
 import com.prabhu.app.ui.theme.ClassTeal
 import com.prabhu.app.ui.theme.ClassTealLight
 import com.prabhu.app.ui.theme.PrimaryBlue
@@ -46,7 +56,10 @@ import com.prabhu.app.ui.theme.PrimaryBlueLight
 import com.prabhu.app.ui.theme.SpendingRed
 import com.prabhu.app.ui.theme.SpendingRedLight
 import com.prabhu.app.util.DateUtils
+import com.prabhu.app.util.UsageStatsHelper
 import com.prabhu.app.util.formatMoney
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.prabhu.app.viewmodel.DashboardViewModel
 import com.prabhu.app.viewmodel.ViewModelFactory
 
@@ -64,6 +77,28 @@ fun DashboardScreen(
     val viewModel: DashboardViewModel = viewModel(factory = factory)
     val state by viewModel.uiState.collectAsState()
     var selectedDay by remember { mutableStateOf(DateUtils.startOfDay(DateUtils.now())) }
+
+    val context = LocalContext.current
+    var hasUsageAccess by remember { mutableStateOf(UsageStatsHelper.hasUsageAccess(context)) }
+    var screenTimeMillis by remember { mutableStateOf(0L) }
+
+    // Re-check on resume, e.g. coming back from the App Usage screen after
+    // granting access there for the first time.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) hasUsageAccess = UsageStatsHelper.hasUsageAccess(context)
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    LaunchedEffect(hasUsageAccess) {
+        if (hasUsageAccess) {
+            screenTimeMillis = withContext(Dispatchers.IO) {
+                UsageStatsHelper.getTodayUsage(context).sumOf { it.foregroundMillis }
+            }
+        }
+    }
 
     val selectedDayClasses = remember(state.calendarClasses, selectedDay) {
         state.calendarClasses.filter { DateUtils.isSameDay(it.dateMillis, selectedDay) }
@@ -155,6 +190,23 @@ fun DashboardScreen(
                         accentColor = PrimaryBlue,
                         accentContainer = PrimaryBlueLight,
                         modifier = Modifier.weight(1f)
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    SummaryCard(
+                        label = if (hasUsageAccess) "Screen Time Today" else "Tap to enable Screen Time",
+                        value = if (hasUsageAccess) UsageStatsHelper.formatDuration(screenTimeMillis) else "\u2013",
+                        icon = Icons.Filled.BarChart,
+                        accentColor = AttendedGreen,
+                        accentContainer = AttendedGreenLight,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable(onClick = onOpenUsage)
                     )
                 }
             }

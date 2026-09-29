@@ -11,8 +11,7 @@ data class TrackEntry(
     val subtitle: String,
     val amount: Double?,   // null for classes and activities
     val dateMillis: Long,
-    val endMillis: Long? = null,  // set for classes only
-    val attended: Boolean = false // set for classes only
+    val endMillis: Long? = null   // set for classes only
 )
 
 fun ExpenseEntity.toTrackEntry() = TrackEntry(
@@ -31,8 +30,7 @@ fun ClassEntity.toTrackEntry() = TrackEntry(
     subtitle = if (teacher.isBlank()) type else "$type · $teacher",
     amount = null,
     dateMillis = dateMillis,
-    endMillis = endDateMillis,
-    attended = attended
+    endMillis = endDateMillis
 )
 
 fun ActivityEntity.toTrackEntry() = TrackEntry(

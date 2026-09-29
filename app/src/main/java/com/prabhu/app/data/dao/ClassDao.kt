@@ -39,4 +39,5 @@ interface ClassDao {
 
     @Query("SELECT COUNT(*) FROM classes WHERE dateMillis BETWEEN :start AND :end")
     fun getCountBetween(start: Long, end: Long): Flow<Int>
+
 }

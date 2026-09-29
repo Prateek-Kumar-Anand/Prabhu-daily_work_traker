@@ -10,7 +10,6 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.prabhu.app.MainActivity
-import com.prabhu.app.receiver.ClassAttendanceReceiver
 import com.prabhu.app.R
 
 object NotificationHelper {
@@ -49,38 +48,13 @@ object NotificationHelper {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        fun actionIntent(action: String, requestCode: Int): PendingIntent {
-            val intent = Intent(context, ClassAttendanceReceiver::class.java).apply {
-                this.action = action
-                putExtra(ClassAttendanceReceiver.EXTRA_CLASS_ID, classId)
-            }
-            return PendingIntent.getBroadcast(
-                context,
-                requestCode,
-                intent,
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-            )
-        }
-        val yesAction = NotificationCompat.Action.Builder(
-            android.R.drawable.ic_menu_send,
-            "Yes",
-            actionIntent(ClassAttendanceReceiver.ACTION_MARK_ATTENDED, classId.toInt() * 2)
-        ).build()
-        val noAction = NotificationCompat.Action.Builder(
-            android.R.drawable.ic_menu_close_clear_cancel,
-            "No",
-            actionIntent(ClassAttendanceReceiver.ACTION_MARK_MISSED, classId.toInt() * 2 + 1)
-        ).build()
-
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("$subject is starting")
-            .setContentText(if (detail.isBlank()) "Going to class?" else "Going to class? \u2022 $detail")
+            .setContentText(detail)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(contentIntent)
-            .addAction(yesAction)
-            .addAction(noAction)
             .build()
 
         NotificationManagerCompat.from(context).notify(classId.toInt(), notification)
